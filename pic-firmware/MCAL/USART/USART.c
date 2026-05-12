@@ -16,17 +16,15 @@ static void (*UART_Callback)(u8) = 0;
 
 void UART_Init(void)
 {
-    SET_BIT(TXSTA, BRGH);        /* High-speed mode                  */
-    CLR_BIT(TXSTA, SYNC);        /* Asynchronous                     */
-    SET_BIT(TXSTA, TXEN);        /* Enable TX                        */
-
-    SPBRG = UART_SPBRG_VAL;      /* 9600 baud @ 8MHz (51)            */
-
-    SET_BIT(RCSTA, SPEN);        /* Enable serial port (RC6/RC7)     */
-    SET_BIT(RCSTA, CREN);        /* Continuous receive               */
-
-    /* Interrupts deliberately NOT enabled — RX is polled via
-       UART_DataAvailable() in the main loop every 100 ms tick.     */
+    /* Direct register writes avoid the XC8 vs MikroC bit-name conflict.
+       Under XC8, BRGH/TXEN/SPEN/CREN resolve to TXSTAbits.xxx (bit-field
+       members, value 0/1) not integer positions; SET_BIT would shift by 0
+       or 1 and set the wrong bit.  Write the known-good values directly. */
+    TXSTA = 0x24u;          /* bit5=TXEN, bit2=BRGH, SYNC=0 (async)    */
+    SPBRG = UART_SPBRG_VAL; /* 9600 baud @ 8 MHz: 51 → 9615 baud       */
+    RCSTA = 0x90u;          /* bit7=SPEN (port on), bit4=CREN (rx on)   */
+    /* Interrupts deliberately NOT enabled — RX polled via
+       UART_DataAvailable() every main-loop tick.                      */
 }
 
 /* =================================
@@ -35,21 +33,12 @@ void UART_Init(void)
 
 void UART_RX_Init(void)
 {
-
-    SET_BIT(TXSTA , BRGH);      // High Speed Mode
-
-    SPBRG = 51;                 // 9600 Baud @ 8MHz: (8000000/(16*9600))-1 = 51 → 9615 baud (0.16% error)
-
-    CLR_BIT(TXSTA , SYNC);      // Asynchronous Mode
-
-    SET_BIT(RCSTA , SPEN);      // Enable Serial Port
-
-    SET_BIT(RCSTA , CREN);      // Continuous Receive
-
-    SET_BIT(PIE1 , RCIE);       // Enable UART RX Interrupt
-
-    SET_BIT(INTCON , PEIE);     // Peripheral Interrupt Enable
-    SET_BIT(INTCON , GIE);      // Global Interrupt Enable
+    TXSTA = 0x20u;          /* BRGH=0, SYNC=0, TXEN=1 (TX on for idle HIGH) */
+    SPBRG = 51u;            /* 9600 baud @ 8 MHz                             */
+    RCSTA = 0x90u;          /* SPEN=1, CREN=1                                */
+    SET_BIT(PIE1,   5u);    /* RCIE  = PIE1<5>                               */
+    SET_BIT(INTCON, 6u);    /* PEIE  = INTCON<6>                             */
+    SET_BIT(INTCON, 7u);    /* GIE   = INTCON<7>                             */
 }
 
 /* =================================
@@ -58,16 +47,9 @@ void UART_RX_Init(void)
 
 void UART_TX_Init(void)
 {
-
-    SET_BIT(TXSTA , BRGH);      // High Speed
-
-    SPBRG = 51;                 // 9600 Baud @ 8MHz: (8000000/(16*9600))-1 = 51 → 9615 baud (0.16% error)
-
-    CLR_BIT(TXSTA , SYNC);      // Asynchronous Mode
-
-    SET_BIT(RCSTA , SPEN);      // Enable Serial Port
-
-    SET_BIT(TXSTA , TXEN);      // Enable Transmission
+    TXSTA = 0x24u;          /* BRGH=1, SYNC=0, TXEN=1 */
+    SPBRG = 51u;
+    RCSTA = 0x80u;          /* SPEN=1, CREN=0 (TX only) */
 }
 
 /* =================================
@@ -76,15 +58,13 @@ void UART_TX_Init(void)
 
 void UART_Write(u8 Data)
 {
-
-    while(!GET_BIT(TXSTA , TRMT));   // Wait until TX empty
-
+    while(!GET_BIT(TXSTA, 1u));   /* TRMT = TXSTA<1> */
     TXREG = Data;
 }
 
-void UART_Write_ISR(u8 Data) {
-    while(!GET_BIT(TXSTA , TRMT));   // Wait until TX empty
-
+void UART_Write_ISR(u8 Data)
+{
+    while(!GET_BIT(TXSTA, 1u));   /* TRMT = TXSTA<1> */
     TXREG = Data;
 }
 
@@ -98,7 +78,7 @@ void UART_Write_ISR(u8 Data) {
 
 u8 UART_DataAvailable(void)
 {
-    return (u8)GET_BIT(PIR1, RCIF);
+    return (u8)GET_BIT(PIR1, 5u);   /* RCIF = PIR1<5> */
 }
 
 /* =================================
@@ -110,7 +90,7 @@ u8 UART_DataAvailable(void)
 
 u8 UART_Read(void)
 {
-    while(!GET_BIT(PIR1, RCIF));     /* Wait for data */
+    while(!GET_BIT(PIR1, 5u));   /* RCIF = PIR1<5> */
     return RCREG;
 }
 
@@ -120,15 +100,14 @@ u8 UART_Read(void)
 
 u8 UART_TX_Empty(void)
 {
-
-    return GET_BIT(TXSTA , TRMT);
+    return GET_BIT(TXSTA, 1u);   /* TRMT = TXSTA<1> */
 }
 
 void UART_ClearOverrun(void)
 {
     if(GET_BIT(RCSTA, 1u)) {   /* OERR = RCSTA<1> */
-        CLR_BIT(RCSTA, CREN);
-        SET_BIT(RCSTA, CREN);
+        CLR_BIT(RCSTA, 4u);   /* CREN = RCSTA<4> */
+        SET_BIT(RCSTA, 4u);
     }
 }
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>com.microchip.ide.project.MplabxProjectType</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/make-project/1">
+            <name>SmartIrrigation</name>
+            <make-project-type>0</make-project-type>
+            <c-extensions/>
+            <c-headers/>
+            <asm-extensions/>
+            <ca-extensions/>
+            <make-dep-projects/>
+        </data>
+    </configuration>
+</project>

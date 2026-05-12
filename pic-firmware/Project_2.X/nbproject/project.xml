@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>com.microchip.mplab.nbide.embedded.makeproject</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/make-project/1">
+            <name>Project_2</name>
+            <creation-uuid>5f0fcc67-0561-467c-8441-fc49e6b7c788</creation-uuid>
+            <make-project-type>0</make-project-type>
+            <sourceEncoding>ISO-8859-1</sourceEncoding>
+            <make-dep-projects/>
+            <sourceRootList>
+                <sourceRootElem>C:\Users\Abdullah\OneDrive\Documents\Embedded_Systems\Project_2\smart-irrigation-pic-ana-w-body\pic-firmware\APP</sourceRootElem>
+                <sourceRootElem>C:\Users\Abdullah\OneDrive\Documents\Embedded_Systems\Project_2\smart-irrigation-pic-ana-w-body\pic-firmware\HAL</sourceRootElem>
+                <sourceRootElem>C:\Users\Abdullah\OneDrive\Documents\Embedded_Systems\Project_2\smart-irrigation-pic-ana-w-body\pic-firmware\MCAL</sourceRootElem>
+                <sourceRootElem>C:\Users\Abdullah\OneDrive\Documents\Embedded_Systems\Project_2\smart-irrigation-pic-ana-w-body\pic-firmware\SERVICES</sourceRootElem>
+            </sourceRootList>
+            <confList>
+                <confElem>
+                    <name>default</name>
+                    <type>2</type>
+                </confElem>
+            </confList>
+            <formatting>
+                <project-formatting-style>false</project-formatting-style>
+            </formatting>
+        </data>
+    </configuration>
+</project>
