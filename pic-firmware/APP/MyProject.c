@@ -14,7 +14,7 @@
 #pragma config FOSC = HS /* High-Speed crystal */
 #pragma config WDTE = OFF
 #pragma config PWRTE = ON
-#pragma config BOREN = ON
+#pragma config BOREN = OFF  /* disabled for PSU debug — re-enable when on bench supply */
 #pragma config LVP = OFF /* LVP=OFF frees RB3 for limit switch */
 #pragma config CPD = OFF
 #pragma config WRT = OFF
@@ -73,6 +73,7 @@ void main(void)
     u16 rx_count   = 0u;
     u8  hs_state   = 0u;     /* handshake FSM: 0=idle, 1=saw BB, 2=saw BB+10 */
     u16 hs_count   = 0u;     /* full BB-10-AA sequences seen */
+    u8  i          = 0u;
 
     ADCON1 = ADCON1_CONFIG;
     TRISA  = 0x07u;
@@ -80,73 +81,89 @@ void main(void)
     TRISC  = 0b10000000u;    /* RC7 = RX input, RC6 = TX output */
     TRISD  = 0x00u;
     TRISE  = 0x00u;
+
+    /* PIC alive check: blink RE1 (yellow LED) 3x before LCD init.
+     * If LED blinks → PIC is running → problem is LCD contrast or wiring.
+     * If LED does NOT blink → power/BOREN/crystal issue. */
+    for(i = 0u; i < 3u; i++)
+    {
+        SET_BIT(PORTE, 1u);
+        __delay_ms(200);
+        CLR_BIT(PORTE, 1u);
+        __delay_ms(200);
+    }
+
     CLR_BIT(OPTION_REG, 7u); /* Enable PORTB pull-ups */
     PORTD  = portd_shadow;
     SET_BIT(PORTC, 6u);      /* UART TX idle HIGH */
 
-    UART_Init();
-    UART_ClearOverrun();
     LCD_Init();
+    UART_Init();
 
     LCD_GoToRowCol(1u, 1u);
-    LCD_SendString_Const("Test2: NodeMCU  ");
+    LCD_SendString_Const("BiDir Test      ");
     LCD_GoToRowCol(2u, 1u);
-    LCD_SendString_Const("No handshake yet");
+    LCD_SendString_Const("Waiting for Pi  ");
 
+    /* ── Bidirectional test ──────────────────────────────────────────
+     * Pi sends  [0xBB][0x10][0xAA] every few seconds.
+     * PIC replies [0xAA][0x10][0xBB] immediately on receipt.
+     * LCD row 1: RX count (handshakes received from Pi)
+     *     row 2: TX count (ACKs sent back to Pi)
+     *
+     * Tight inner drain loop reads all pending bytes before any LCD
+     * update — prevents FIFO overrun when all 3 bytes arrive together.
+     * ─────────────────────────────────────────────────────────────── */
     while(1)
     {
-        UART_ClearOverrun();   /* recover if Pi/NodeMCU bursts before ready */
-
-        if(UART_DataAvailable())
+        /* Drain every waiting byte before touching the LCD */
+        while(UART_DataAvailable())
         {
             rx_byte = UART_Read();
-            rx_count++;
 
-            /* Handshake FSM: looking for 0xBB, 0x10, 0xAA in order */
             switch(hs_state)
             {
-            case 0u:
-                if(rx_byte == 0xBBu) hs_state = 1u;
-                break;
-            case 1u:
-                if(rx_byte == 0x10u)      hs_state = 2u;
-                else if(rx_byte == 0xBBu) hs_state = 1u;  /* restart */
-                else                      hs_state = 0u;
-                break;
-            case 2u:
-                if(rx_byte == 0xAAu) {
-                    hs_count++;
+                case 0u:
+                    if(rx_byte == 0xBBu) hs_state = 1u;
+                    break;
+                case 1u:
+                    if(rx_byte == 0x10u)      hs_state = 2u;
+                    else if(rx_byte == 0xBBu) hs_state = 1u;
+                    else                      hs_state = 0u;
+                    break;
+                case 2u:
+                    if(rx_byte == 0xAAu)
+                    {
+                        UART_Write(0xAAu);
+                        UART_Write(0x10u);
+                        UART_Write(0xBBu);
+                        if(rx_count < 0xFFFFu) rx_count++;
+                        if(hs_count < 0xFFFFu) hs_count++;
+                    }
                     hs_state = 0u;
-                }
-                else if(rx_byte == 0xBBu) hs_state = 1u;
-                else                      hs_state = 0u;
-                break;
-            default:
-                hs_state = 0u;
-                break;
-            }
-
-            /* Row 1: last byte hex + total byte count */
-            LCD_GoToRowCol(1u, 1u);
-            LCD_SendString_Const("Last:");
-            lcd_hex(rx_byte);
-            LCD_SendString_Const(" Cnt:");
-            LCD_SendNumber((s16)rx_count);
-            LCD_SendString_Const("   ");
-
-            /* Row 2: handshake count if any seen */
-            LCD_GoToRowCol(2u, 1u);
-            if(hs_count > 0u)
-            {
-                LCD_SendString_Const("HANDSHAKE x");
-                LCD_SendNumber((s16)hs_count);
-                LCD_SendString_Const("    ");
-            }
-            else
-            {
-                LCD_SendString_Const("No handshake yet");
+                    break;
+                default:
+                    hs_state = 0u;
+                    break;
             }
         }
+        UART_ClearOverrun();
+
+        /* LCD update once per 50 ms outer tick */
+        LCD_GoToRowCol(1u, 1u);
+        LCD_SendString_Const("RX:");
+        LCD_SendNumber((s16)rx_count);
+        LCD_SendString_Const(" TX:");
+        LCD_SendNumber((s16)hs_count);
+        LCD_SendString_Const("    ");
+
+        LCD_GoToRowCol(2u, 1u);
+        if(rx_count == 0u)
+            LCD_SendString_Const("Waiting for Pi  ");
+        else
+            LCD_SendString_Const("Link OK         ");
+
+        __delay_ms(50);
     }
 }
 

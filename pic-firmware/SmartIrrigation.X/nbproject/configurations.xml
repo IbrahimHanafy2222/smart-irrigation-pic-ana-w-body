@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="62">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+
+    <logicalFolder name="HeaderFiles" displayName="Header Files" projectFiles="true">
+    </logicalFolder>
+
+    <logicalFolder name="LinkerScript" displayName="Linker Files" projectFiles="true">
+    </logicalFolder>
+
+    <logicalFolder name="SourceFiles" displayName="Source Files" projectFiles="true">
+
+      <!-- Application layer -->
+      <itemPath>../APP/MyProject.c</itemPath>
+      <itemPath>../APP/Comms/Comms.c</itemPath>
+      <itemPath>../APP/Irrigation/Irrigation.c</itemPath>
+      <itemPath>../APP/Safety/Safety.c</itemPath>
+
+      <!-- HAL layer -->
+      <itemPath>../HAL/Button/Button.c</itemPath>
+      <itemPath>../HAL/Buzzer/Buzzer.c</itemPath>
+      <itemPath>../HAL/Current/Current.c</itemPath>
+      <itemPath>../HAL/Fan/Fan.c</itemPath>
+      <itemPath>../HAL/Humidity/Humidity.c</itemPath>
+      <itemPath>../HAL/LCD/LCD.c</itemPath>
+      <itemPath>../HAL/LED/LED.c</itemPath>
+      <itemPath>../HAL/Motor/Motor.c</itemPath>
+      <itemPath>../HAL/Relay/Relay.c</itemPath>
+      <itemPath>../HAL/Soil/Soil.c</itemPath>
+      <itemPath>../HAL/Temperature/Temp.c</itemPath>
+      <itemPath>../HAL/Ultrasonic/Ultrasonic.c</itemPath>
+
+      <!-- MCAL layer -->
+      <itemPath>../MCAL/ADC/ADC.c</itemPath>
+      <itemPath>../MCAL/GPIO/GPIO.c</itemPath>
+      <itemPath>../MCAL/Interrupt_Manager/Interrupt_Manager.c</itemPath>
+      <itemPath>../MCAL/TIMER0/Timer0.c</itemPath>
+      <itemPath>../MCAL/USART/USART.c</itemPath>
+
+      <!-- Services -->
+      <itemPath>../SERVICES/Delay.c</itemPath>
+
+      <!-- Test files excluded (have their own main) -->
+      <!-- ../APP/Tests/stepper_test.c -->
+      <!-- ../APP/Tests/uart_test.c   -->
+
+    </logicalFolder>
+
+    <logicalFolder name="ExternalFiles" displayName="Important Files" projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+
+  </logicalFolder>
+
+  <projectmakefile>Makefile</projectmakefile>
+
+  <confs>
+    <conf name="default" type="2">
+
+      <toolsSet>
+        <targetDevice>PIC16F877A</targetDevice>
+        <targetHeader></targetHeader>
+        <targetPluginBoard></targetPluginBoard>
+        <platform>3</platform>
+        <languageToolchain>XC8</languageToolchain>
+        <languageToolchainVersion>2.36</languageToolchainVersion>
+        <domainID>0</domainID>
+        <assignedDebugHeader></assignedDebugHeader>
+        <selectedLanguageToolchain>XC8</selectedLanguageToolchain>
+      </toolsSet>
+
+      <compileType>
+        <gccCompiler>
+          <!-- Root of the source tree so #include "config.h" etc. resolve -->
+          <property key="extra-include-directories" value=".."/>
+          <!-- O1 is the max for XC8 free mode -->
+          <property key="optimization-level" value="1"/>
+          <property key="warning-level" value="0"/>
+        </gccCompiler>
+      </compileType>
+
+      <makeCustomizationType>
+        <makeCustomizationPreStepEnabled>false</makeCustomizationPreStepEnabled>
+      </makeCustomizationType>
+
+    </conf>
+  </confs>
+</configurationDescriptor>
