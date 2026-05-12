@@ -1,0 +1,373 @@
+# Claude Code Prompt — PIC16F877A Application Layer (Automatic Mode)
+
+> Copy everything below the line and paste it into Claude Code as a single prompt.
+
+---
+
+## Context
+
+You are working on an embedded systems course project: **AI-Based Smart Precision Irrigation System** (CIE-349/408, Zewail City, Spring 2026). The repo is at `D:\projects\Smart_Irrigation_Project\repo` (GitHub: `Ahmedshaban123r/smart-irrigation`).
+
+The project has a 4-tier architecture:
+- **Tier 1:** Sensors + actuators (soil moisture on RA0, LM35 on RA1, ACS712-05B on RA2, HC-SR04 on RB0/RB1, NEMA17 stepper via A4988 on RC0-RC2, relay/pump on RD0, limit switch on RB3, LCD on PORTD, LEDs on RE1-RE2, buzzer on RB2, emergency stop button on RB4)
+- **Tier 2:** PIC16F877A — real-time safety + control (this is what you're writing now)
+- **Tier 3:** ESP8266 NodeMCU — IoT bridge (NOT part of this task)
+- **Tier 4:** Raspberry Pi 4 — ML inference (NOT part of this task)
+
+**Toolchain:** XC8 v2.36 compiler with VS Code (NOT MikroC Pro, NOT MPLAB X IDE as editor).
+**Compiler path:** `C:\Program Files\Microchip\xc8\v2.36\bin\xc8-cc.exe`
+**Compile command:** `xc8-cc -mcpu=16F877A -O1 -o output.hex main.c adc.c safety.c lcd.c button.c motor.c irrigation.c ultrasonic.c` (NO `-mdfp` flag needed — v2.36 has built-in device support)
+**DO NOT use XC8 v3.10** — it requires DFP packs and causes issues. Always use v2.36.
+**Firmware folder:** `firmware/` (create this folder at the repo root)
+**Crystal:** 20 MHz (`_XTAL_FREQ` = 20000000)
+**Target device:** PIC16F877A
+
+## Compile & Verify Instructions
+
+After writing all files, compile them to verify zero errors:
+
+```bash
+cd firmware
+"C:\Program Files\Microchip\xc8\v2.36\bin\xc8-cc.exe" -mcpu=16F877A -O1 -o output.hex main.c adc.c safety.c lcd.c button.c motor.c irrigation.c ultrasonic.c
+```
+
+- Fix ALL errors and warnings before declaring done.
+- The free-mode XC8 compiler will show advisory (2049) about C90 libraries — that's normal, ignore it.
+- If you get "undefined symbol" errors, check that all `.c` files are listed in the compile command and all `.h` files use proper include guards.
+
+## Physical Setup
+
+The plants are arranged in **one rectangular planter box**, all in a single row, spaced **10 cm apart**. The 1-axis gantry runs along the top of this box. The carriage moves to each plant position to deliver water through a nozzle connected via flexible tubing to a fixed pump.
+
+**There is only ONE of each sensor** for the entire system — not per-plant:
+- **One soil moisture sensor** — fixed in the planter box, provides a single reading for the overall soil moisture of the entire box.
+- **One LM35 temperature sensor** — measures ambient/system temperature.
+- **One ACS712-05B current sensor** — monitors total system current.
+- **One HC-SR04 ultrasonic sensor** — measures water level in the reservoir (mounted facing down into the water tank).
+
+**There is NO keypad.** Instead, a single momentary push button serves as the emergency stop.
+
+## Your Task
+
+Write the **Application Layer** — the PIC16F877A firmware for **Automatic Mode only** (no ESP, no Pi, no UART communication yet). This is the foundational layer that everything else builds on top of.
+
+### What Automatic Mode Does
+
+1. **Sensor polling + LCD display:** Read all analog sensors (soil moisture, temperature, current) via ADC sequentially every configurable period (default 2 seconds). Read HC-SR04 for water reservoir level. Update the LCD — cycle through sensor readings on line 1 (moisture → temp → current → water level, rotating every 2 seconds), and show system status on line 2 ("Auto Mode OK", "LOCKOUT!", "Irrigating P3", etc.).
+
+2. **Safety checks — continuous:** Run all 4 safety algorithms on every sensor read cycle. Each has TWO levels (warning then action) per course requirements:
+
+   - **Dry-run protection:** HC-SR04 measures water level in the reservoir. Warning: water below 5cm → amber LED + buzzer beep + LCD "Low Water Warn". Action: water below 2cm → red LED + continuous buzzer + pump relay OFF + safety lockout.
+
+   - **Overwatering protection:** Single soil moisture sensor reading above saturation threshold. Warning: moisture > 80% → amber LED + LCD "Soil Saturated". Action: moisture > 90% → red LED + pump OFF + skip entire irrigation cycle (since there's only one sensor for the whole box, if soil is saturated, no plant needs water).
+
+   - **Overcurrent protection:** ACS712 reading. Warning: current > 3.5A → amber LED + LCD "Overcurrent Warn". Action: current > 4.5A → red LED + system-wide shutdown (pump OFF + stepper disabled) + lockout.
+
+   - **Overheat protection:** LM35 reading. Warning: temp > 55°C → amber LED + LCD "Overtemp Warn". Action: temp > 70°C → red LED + system shutdown + lockout.
+
+   **Lockout behavior:** Once any safety feature triggers an ACTION level, the system enters lockout. In lockout: pump is OFF, stepper is disabled (ENABLE_X HIGH), red LED on steady, buzzer on. Lockout clears ONLY when ALL sensor readings return below their WARNING thresholds with hysteresis:
+   - Temperature must drop below 50°C (not 55°C) to clear overheat
+   - Water level must rise above 6cm (not 5cm) to clear dry-run
+   - Current must drop below 3.0A (not 3.5A) to clear overcurrent
+   - Moisture must drop below 75% (not 80%) to clear overwatering
+
+3. **Irrigation cycle (every 3 minutes):**
+   - **First:** Read soil moisture. If moisture > 70% (wet enough), skip the entire cycle. Display "Soil OK - Skip" on LCD. Wait for next cycle.
+   - If irrigation is needed:
+     - Home the carriage (drive toward limit switch on RB3 at slow speed, back off 200 steps, set position = 0).
+     - For each plant index (0 to NUM_PLANTS-1):
+       - Move carriage to plant position from lookup table.
+       - Wait 300ms settle time after motion stops.
+       - Turn pump relay ON (RD0 active LOW) for default 5 seconds.
+       - During pump-on time, poll sensors + run safety checks every ~100ms. If any safety ACTION triggers, immediately kill pump and abort the entire cycle.
+       - Also poll emergency stop button during pump-on.
+       - Turn pump OFF, display "Done P[i]" briefly.
+     - After all plants, return home.
+     - Disable stepper driver (ENABLE_X = HIGH) to save power.
+   - Wait until 3-minute timer expires before next cycle.
+
+4. **Emergency stop button:** A single momentary push button on RB4 (active LOW with pull-up).
+   - **Press (falling edge detected):** Immediately kill pump (RD0 HIGH), disable stepper (RC2 HIGH), set manual lockout flag, red LED on, LCD shows "E-STOP ACTIVE".
+   - **Press again (second falling edge while in manual lockout):** Clear manual lockout, return to normal automatic operation.
+   - Debounce: ignore presses within 300ms of the last detected press.
+   - The button is polled in the main loop AND inside the irrigation pump-on wait loop.
+
+5. **Motor idle management:** After any movement completes and the carriage is at rest, set ENABLE_X (RC2) HIGH to disable the A4988 driver. Re-enable (RC2 LOW) before the next move.
+
+### Plant Position Lookup Table
+
+Plants are spaced 10cm (100mm) apart. With 20T GT2 pulley and 1/16 microstepping: 1 step = 0.0125mm, so 100mm = 8000 microsteps.
+
+First plant is 50mm from home position (50mm / 0.0125 = 4000 steps).
+
+```
+#define NUM_PLANTS       5
+// Plant positions in microsteps from home:
+// Plant[0] =  50mm =  4000 steps
+// Plant[1] = 150mm = 12000 steps
+// Plant[2] = 250mm = 20000 steps
+// Plant[3] = 350mm = 28000 steps
+// Plant[4] = 450mm = 36000 steps
+const uint32_t plant_positions[NUM_PLANTS] = {4000, 12000, 20000, 28000, 36000};
+```
+
+These are configurable — the number of plants and spacing can be changed by editing `config.h`.
+
+### Architecture Requirements
+
+- **Minimize interrupts.** Use polling for everything. No ISRs in this version. When UART is added later (for ESP/Pi), UART RX will need an ISR — but that's not this task.
+- **Main loop structure:** The main loop runs on a ~100ms tick. Each tick: poll e-stop button → read sensors (if due) → run safety state machine → update LCD (if due) → check if irrigation cycle is due → if yes, run the irrigation cycle.
+- **Modular file structure.** Separate `.c`/`.h` files:
+  - `main.c` — config bits, main loop, initialization, top-level state machine
+  - `adc.c/.h` — ADC initialization, channel selection, read functions
+  - `safety.c/.h` — all 4 safety algorithms, lockout logic, hysteresis
+  - `lcd.c/.h` — LCD init (4-bit mode), write string, write number, clear, set cursor — all register-level, no libraries
+  - `button.c/.h` — emergency stop button read + debounce + toggle logic
+  - `motor.c/.h` — homing, move_to_plant(), step pulse generation, enable/disable
+  - `irrigation.c/.h` — irrigation_cycle(), pump control, safety polling during pump-on
+  - `ultrasonic.c/.h` — HC-SR04 trigger/echo measurement (software timing loop)
+  - `config.h` — all `#define` thresholds, pin assignments, timing constants, plant positions, `_XTAL_FREQ`
+- **Every function must have a header comment** explaining what it does, its inputs/outputs, and which hardware it touches.
+- **All magic numbers go in `config.h`** with descriptive names.
+- **Include guards on every .h file** using `#ifndef CONFIG_H` / `#define CONFIG_H` / `#endif` pattern.
+
+### Pin Configuration (no keypad — single button on RB4)
+
+```
+RA0/AN0  → Soil Moisture Sensor (ADC Ch0, analog input)
+RA1/AN1  → LM35 Temperature Sensor (ADC Ch1, analog input)
+RA2/AN2  → ACS712-05B Current Sensor (ADC Ch2, analog input)
+RA3      → UNUSED (digital, available)
+RA4      → UNUSED (digital, available — note: open-drain on this chip)
+RA5      → UNUSED (digital, available)
+RB0      → HC-SR04 Trigger (digital output)
+RB1      → HC-SR04 Echo (digital input)
+RB2      → Buzzer via 2N2222 NPN transistor (digital output)
+RB3      → Limit Switch for homing (digital input, pull-up, active LOW when pressed)
+RB4      → Emergency Stop push button (digital input, pull-up, active LOW when pressed)
+RB5-RB7  → UNUSED (digital, available)
+RC0      → STEP_X pulse to A4988 (digital output)
+RC1      → DIR_X direction to A4988 (digital output)
+RC2      → ENABLE_X to A4988 (digital output, LOW=enabled, HIGH=disabled)
+RC3-RC5  → UNUSED (reserved for future Y-axis)
+RC6      → UART TX (unused in this version, configure as output driven HIGH)
+RC7      → UART RX (unused in this version, configure as input)
+RD0      → Relay IN1 — Pump (digital output, ACTIVE LOW: LOW=pump ON, HIGH=pump OFF)
+RD1      → Relay IN2 — Spare (digital output, ACTIVE LOW, keep HIGH/OFF)
+RD2      → LCD RS (digital output)
+RD3      → LCD Enable (digital output)
+RD4-RD7  → LCD Data D4-D7 (digital output, 4-bit mode)
+RE0      → UNUSED (digital, available)
+RE1      → Amber LED — Warning indicator (digital output)
+RE2      → Red LED — Fault indicator (digital output)
+```
+
+**Freed pins (no keypad):** RA3, RA4, RA5, RB5, RB6, RB7, RE0 — all available for future use. Note this in `config.h` comments.
+
+### XC8 Compiler Specifics
+
+- Use `#include <xc.h>` for all register definitions.
+- Use `#include <stdint.h>` for `uint8_t`, `uint16_t`, `uint32_t`.
+- Use `#include <stdbool.h>` for `bool`, `true`, `false`.
+- Define `#define _XTAL_FREQ 20000000UL` in `config.h` (required for `__delay_ms()` and `__delay_us()`).
+- **`config.h` must be included FIRST in every `.c` file** (before `<xc.h>`) so `_XTAL_FREQ` is defined before the compiler encounters any delay macros.
+- Config bits in `main.c` using `#pragma config`:
+  ```c
+  #pragma config FOSC = HS        // High-Speed crystal 20MHz
+  #pragma config WDTE = OFF       // Watchdog Timer disabled
+  #pragma config PWRTE = ON       // Power-up Timer enabled
+  #pragma config BOREN = ON       // Brown-out Reset enabled
+  #pragma config LVP = OFF        // Low-Voltage Programming disabled (frees RB3 for I/O!)
+  #pragma config CPD = OFF        // Data EEPROM code protection off
+  #pragma config WRT = OFF        // Flash write protection off
+  #pragma config CP = OFF         // Code protection off
+  ```
+  **CRITICAL: `LVP = OFF` is mandatory.** If LVP is ON, RB3 cannot be used as the limit switch input.
+- Delay macros: `__delay_ms(x)`, `__delay_us(x)`.
+- **XC8 free mode limitation:** `__delay_ms()` argument must be a compile-time constant. For variable delays, use a loop: `for(uint16_t i = 0; i < ms; i++) __delay_ms(1);`
+- **`void main(void)` — not `int main(void)`.** XC8 for PIC expects `void main(void)`.
+- **No MikroC libraries.** All peripheral drivers are register-level.
+- Bit access: `PORTBbits.RB3`, `TRISCbits.TRISC0 = 0;`, etc.
+- **Bank switching:** PIC16F877A registers span multiple banks. XC8 handles bank switching automatically when you use named register definitions like `TRISA`, `PORTA`, `ADCON0`, etc. Do NOT manually switch banks.
+- **Data types and RAM:** PIC16F877A has only 368 bytes of RAM. Use `uint8_t` wherever possible instead of `int` (which is 16-bit on XC8). Avoid large arrays. Global variables are fine for embedded — no need for malloc.
+
+**Read-Modify-Write hazard on PIC16F877A:** This chip has NO LAT registers. When writing individual output bits on a shared port, RMW can corrupt adjacent pins. Mitigate by using a **shadow register** approach:
+  ```c
+  // Example for PORTD (LCD + relay share this port)
+  static uint8_t portd_shadow = 0xFF;  // initial state
+  portd_shadow &= ~(1 << 0);           // clear RD0 (pump ON)
+  PORTD = portd_shadow;                // write entire port at once
+  ```
+  Apply this consistently on PORTD and PORTB. Document the strategy in each driver file.
+
+### ADC Conversion Details
+
+- **ADCON1 = 0x04:** RA0, RA1, RA2 = analog. Everything else = digital. Vref+ = VDD (5V), Vref- = VSS.
+- **Use 10-bit ADC readings** (combine `ADRESH << 8 | ADRESL >> 6` for left-justified, or set right-justify with `ADCON1 |= 0x80` and read `ADRESH << 8 | ADRESL`). 10-bit gives better resolution for temperature and current sensing.
+- **ADC clock:** At 20MHz, use Fosc/32 → ADCS1:ADCS0 = 10 in ADCON0. TAD = 1.6µs (meets ≥1.6µs requirement).
+- **Read sequence:** Select channel in ADCON0 → wait ≥20µs acquisition → set GO/DONE → poll until clear → read ADRESH:ADRESL.
+- **Soil Moisture (AN0):** Capacitive sensor v1.2: dry ≈ 3V (ADC ~614), wet ≈ 1.2V (ADC ~245). Percentage: `moisture_pct = 100 - ((adc_raw - WET_ADC) * 100 / (DRY_ADC - WET_ADC))`, clamp 0–100.
+- **LM35 Temperature (AN1):** 10mV/°C. `temp_C_x10 = (uint16_t)adc_raw * 500UL / 1023` (tenths of °C, e.g. 550 = 55.0°C). Use `unsigned long` cast to avoid overflow.
+- **ACS712-05B Current (AN2):** Quiescent = 2.5V (ADC ~512). 185mV/A. `current_mA = abs((int16_t)adc_raw - 512) * 26`.
+
+### HC-SR04 Ultrasonic Sensor Details
+
+- **Trigger:** 10µs HIGH pulse on RB0, then LOW.
+- **Echo:** Time the HIGH pulse on RB1 via software loop. Count iterations, multiply by known loop time to get microseconds.
+- **Distance:** `distance_cm = echo_duration_us / 58`.
+- **Filtering:** Take 3 readings, use median.
+- **Timeout:** If RB1 stays HIGH longer than ~25ms (>4m range), break out of the loop and flag sensor error. Never hang.
+- **Mounting:** Sensor faces downward into the reservoir. Shorter distance = more water. Convert to water level: `water_level_cm = TANK_HEIGHT_CM - distance_cm`. Safety checks use `water_level_cm`.
+
+### LCD Details (HD44780-compatible, 4-bit mode)
+
+- **Initialization sequence (mandatory, timing-critical):**
+  1. Wait >40ms after power-on
+  2. Send 0x30 (as nibble), wait >4.1ms
+  3. Send 0x30 again, wait >100µs
+  4. Send 0x30 again, wait >100µs
+  5. Send 0x20 (sets 4-bit mode)
+  6. Function set: 0x28 (4-bit, 2-line, 5×8 dots)
+  7. Display off: 0x08
+  8. Clear display: 0x01, wait >1.6ms
+  9. Entry mode set: 0x06 (increment, no shift)
+  10. Display on: 0x0C (display on, cursor off, blink off)
+- **Write nibble:** Put upper 4 bits of data on RD4-RD7 (via shadow register!), pulse Enable (RD3) HIGH for ≥1µs then LOW, wait ≥40µs.
+- **Write byte:** Send upper nibble first, then lower nibble.
+- **RS pin (RD2):** LOW = command, HIGH = data.
+- **16×2 display:** Line 1 starts at address 0x00, Line 2 at 0x40.
+- **Provide these LCD functions:** `LCD_Init()`, `LCD_Clear()`, `LCD_SetCursor(row, col)`, `LCD_WriteChar(c)`, `LCD_WriteString(const char *str)`, `LCD_WriteNumber(int16_t num)`.
+- **LCD shares PORTD with relay (RD0) and spare relay (RD1).** The shadow register for PORTD is critical here — every LCD write must preserve the relay pin states.
+
+### Stepper Motor Details
+
+- A4988, 1/16 microstepping (M0/M1/M2 hardwired externally).
+- Step pulse:
+  ```c
+  PORTCbits.RC0 = 1;  __delay_us(2);
+  PORTCbits.RC0 = 0;  __delay_us(2);
+  ```
+- Direction: RC1. HIGH = forward (away from home), LOW = reverse (toward home).
+- Enable: RC2. LOW = enabled, HIGH = disabled.
+- Normal speed: ~500 steps/sec (2ms/step → `__delay_us(1996)` after 4µs pulse).
+- Homing speed: ~125 steps/sec (8ms/step, 1/4 normal).
+- No acceleration ramp needed for this prototype.
+- **Position tracking:** Maintain a `int32_t current_position` variable (in microsteps). Increment on forward step, decrement on reverse step. This is how `move_to_plant()` knows how far to move.
+- **move_to_plant(uint8_t plant_index):** Calculate `target - current_position`, set direction, step that many times. Enable stepper before moving, disable after.
+
+### What NOT to Include
+
+- No UART TX/RX code (added later for ESP/Pi)
+- No Firebase / WiFi
+- No AI/ML protocol handling (0xBB packets)
+- No app command handling (0xCC packets)
+- No interrupt service routines — pure polling
+- No 2-axis motion (1-axis only)
+- No keypad driver (replaced by single button)
+- No EEPROM read/write (no persistent settings in this version)
+
+### Deliverables
+
+1. All `.c` and `.h` files listed above, inside `firmware/`
+2. A VS Code `tasks.json` inside `firmware/.vscode/` that compiles all source files with one Ctrl+Shift+B:
+   ```json
+   {
+     "version": "2.0.0",
+     "tasks": [
+       {
+         "label": "Build PIC16F877A",
+         "type": "process",
+         "command": "C:\\Program Files\\Microchip\\xc8\\v2.36\\bin\\xc8-cc.exe",
+         "args": [
+           "-mcpu=16F877A",
+           "-O1",
+           "-o",
+           "${workspaceFolder}\\output.hex",
+           "${workspaceFolder}\\main.c",
+           "${workspaceFolder}\\adc.c",
+           "${workspaceFolder}\\safety.c",
+           "${workspaceFolder}\\lcd.c",
+           "${workspaceFolder}\\button.c",
+           "${workspaceFolder}\\motor.c",
+           "${workspaceFolder}\\irrigation.c",
+           "${workspaceFolder}\\ultrasonic.c"
+         ],
+         "group": {
+           "kind": "build",
+           "isDefault": true
+         },
+         "problemMatcher": {
+           "pattern": {
+             "regexp": "^(.*):(\\d+):\\d+:\\s+(warning|error):\\s+(.*)$",
+             "file": 1,
+             "line": 2,
+             "severity": 3,
+             "message": 4
+           }
+         }
+       }
+     ]
+   }
+   ```
+3. A `firmware/README.md` explaining:
+   - File structure and what each module does
+   - How to compile (just Ctrl+Shift+B with the included tasks.json)
+   - Config bit settings and why `LVP = OFF` matters
+   - Main loop timing: how sensor polling, LCD update, safety checks, and irrigation cycles interleave
+   - How to calibrate thresholds in `config.h` (especially soil moisture ADC raw values)
+4. If any existing files in the repo conflict, flag them but don't delete — explain what needs to change.
+
+### Validation Checklist (verify every item before finishing)
+
+- [ ] `config.h` has ALL thresholds, pin definitions, timing constants, `_XTAL_FREQ 20000000UL`, and plant position table — zero magic numbers elsewhere
+- [ ] `config.h` is included FIRST in every `.c` file (before `<xc.h>`) so `_XTAL_FREQ` is available for delay macros
+- [ ] All `.h` files have proper include guards (`#ifndef` / `#define` / `#endif`)
+- [ ] `#pragma config LVP = OFF` is set in `main.c`
+- [ ] `void main(void)` — not `int main(void)`
+- [ ] No MikroC-specific syntax anywhere — XC8 only (`<xc.h>`, `__delay_ms`, `PORTBbits.RB3`, `#pragma config`)
+- [ ] `ADCON1 = 0x04` — only RA0-RA2 analog, rest digital
+- [ ] ADC uses 10-bit readings (not just 8-bit ADRESH)
+- [ ] ADC reads include ≥20µs acquisition delay after channel select
+- [ ] Safety checks run DURING irrigation (inside the pump-on wait loop every ~100ms), not just in the main loop
+- [ ] Lockout requires ALL sensors to clear below WARNING minus hysteresis
+- [ ] Each safety feature has exactly TWO levels: warning (amber LED + LCD + buzzer beep) and action (red LED + LCD + buzzer continuous + actuator shutdown + lockout)
+- [ ] Soil moisture is checked ONCE before the irrigation cycle starts — if wet (>70%), entire cycle is skipped (one sensor for the whole box)
+- [ ] Overwatering action (>90%) blocks irrigation completely, not per-plant
+- [ ] Stepper driver disabled (RC2 = HIGH) after every movement sequence
+- [ ] Homing: drive toward RB3 at 1/4 speed, stop on LOW, back off 200 steps, position = 0
+- [ ] Motor position tracked as `int32_t current_position`
+- [ ] HC-SR04 echo loop has a timeout — cannot hang
+- [ ] HC-SR04 uses median of 3 readings
+- [ ] HC-SR04 distance converted to water level: `water_level_cm = TANK_HEIGHT_CM - distance_cm`
+- [ ] LCD initialization follows the full HD44780 4-bit mode sequence with correct timing
+- [ ] LCD writes use shadow register to preserve relay pin states on PORTD
+- [ ] LCD line 1 cycles sensor readings, line 2 shows system status
+- [ ] LCD shows context during irrigation ("Watering P3", "Homing...", "Soil OK-Skip")
+- [ ] Emergency stop button on RB4: falling edge → lockout; second press → clear lockout
+- [ ] Button debounce (300ms minimum between accepted presses)
+- [ ] Button is polled inside the pump-on wait loop, not just the main loop
+- [ ] RMW hazard addressed via shadow registers on PORTD and PORTB
+- [ ] Plant positions: 4000, 12000, 20000, 28000, 36000 microsteps (10cm spacing, 50mm offset from home)
+- [ ] All functions have header comments (purpose, inputs, outputs, hardware touched)
+- [ ] No keypad code exists — only the single button on RB4
+- [ ] Freed pins (RA3-RA5, RB5-RB7, RE0) are documented as available in `config.h`
+- [ ] No variable-length delays — all `__delay_ms()` arguments are compile-time constants
+- [ ] RAM usage is conservative — `uint8_t` preferred over `int`, no large arrays
+- [ ] Relay control: RD0 LOW = pump ON, RD0 HIGH = pump OFF (active low!)
+- [ ] Pump starts OFF (RD0 = HIGH) at initialization
+- [ ] Stepper starts disabled (RC2 = HIGH) at initialization
+- [ ] Buzzer starts OFF (RB2 = LOW) at initialization
+- [ ] Both LEDs start OFF (RE1 = RE2 = 0) at initialization
+- [ ] UART pins configured but unused: RC6 output HIGH, RC7 input
+- [ ] Spare relay RD1 kept HIGH (off) at all times
+- [ ] 300ms settle time after motor stops, before pump turns on
+- [ ] Code compiles clean under XC8 v2.36 free mode with `xc8-cc -mcpu=16F877A -O1` — no errors
+- [ ] tasks.json included in `firmware/.vscode/` and working
+
+### Priority If You Have to Cut Scope
+
+1. **Safety state machine — all 4 features, two levels each** (course requirement, must be correct)
+2. **Sensor reading + ADC + LCD display** (proves hardware works)
+3. **Motor control + homing** (proves mechanical integration)
+4. **Irrigation cycle with moisture check + safety polling during pump-on** (ties it together)
+5. **Emergency stop button** (can be simplified to just a lockout toggle)

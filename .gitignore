@@ -1,0 +1,52 @@
+# XC8 build artifacts (regenerate on every build)
+*.d
+*.o
+*.p1
+*.s
+*.sym
+*.sdb
+*.elf
+*.cmf
+*.hxl
+*.lst
+*.rlf
+output.*
+startup.*
+
+# MikroC artifacts
+*.asm
+*.cp
+*.mcl
+*.mcpigroup
+*.mcppi
+
+# MPLAB X project state
+.generated_files/
+nbproject/private/
+nbproject/Makefile-*.mk
+nbproject/Package-*.bash
+build/
+dist/
+disassembly/
+_build/
+**/_build/
+**/.generated/
+*.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Don't ignore the .hex — friend may want it
+!output.hex
