@@ -1,0 +1,16 @@
+[Unit]
+Description=Smart Irrigation Pi Controller
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/akai2004/pi-script/pi_controller.py
+WorkingDirectory=/home/akai2004/pi-script
+Restart=always
+RestartSec=5
+User=akai2004
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -85,7 +85,7 @@
 /* ================================================================
    IRRIGATION
    ================================================================ */
-#define NUM_PLANTS            5u    /* Number of plant positions on gantry       */
+#define NUM_PLANTS            2u    /* Number of plant positions on gantry       */
 #define PUMP_ON_TICKS         50u   /* Pump-on duration: 50 × 100ms = 5 s        */
 #define SETTLE_MS_LOOP        3u    /* Post-move settle: 3 × __delay_ms(100)     */
 #define HOMING_BACKOFF_STEPS  200u  /* Steps to back off after limit switch hit  */
@@ -99,13 +99,13 @@
    MAIN LOOP TIMING  (1 tick = __delay_ms(100) = 100 ms)
    ================================================================ */
 #define SENSOR_PERIOD_TICKS   20u   /* Read sensors every 2 s  (20 × 100ms)     */
-#define IRRIG_PERIOD_TICKS    1800u /* Irrigation every 3 min (1800 × 100ms)    */
+#define IRRIG_PERIOD_TICKS    3000u /* Irrigation every 5 min (3000 × 100ms)    */
 
 /* ================================================================
    MOTOR (A4988, 1/16 microstepping, 8 MHz)
    ================================================================ */
-#define STEP_DELAY_NORMAL_MS  2u    /* ~500 steps/s normal travel               */
-#define STEP_DELAY_HOMING_MS  8u    /* ~125 steps/s homing speed (¼ normal)     */
+#define STEP_DELAY_NORMAL_US  200   /* ~5000 steps/s — compile-time constant for __delay_us */
+#define STEP_DELAY_HOMING_US  800   /* ~1250 steps/s homing (slower for limit switch safety) */
 
 /* ================================================================
    HC-SR04 ULTRASONIC (RC3 trigger, RB1 echo)
@@ -142,7 +142,7 @@
 
 /* PORTD — shadow register required (LCD + relays share this port) */
 #define PIN_PUMP    0   /* RD0 — pump relay   (ACTIVE LOW: LOW=ON, HIGH=OFF)    */
-#define PIN_MOTOR   1   /* RD1 — motor relay  (ACTIVE LOW: LOW=ON, HIGH=OFF)    */
+#define PIN_MOTOR   1   /* RD1 — motor relay REMOVED; kept to avoid compile errors in Button.c (writes to RD1 are harmless) */
 #define PIN_RS      2   /* RD2 — LCD RS                                         */
 #define PIN_LCDEN   3   /* RD3 — LCD Enable                                     */
 /* RD4-RD7 = LCD D4-D7 (4-bit mode)                                             */

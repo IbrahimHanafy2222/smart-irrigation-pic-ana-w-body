@@ -1,0 +1,437 @@
+{
+  "ai": {
+    "action_log": {
+      "-Orf-xG4zs9G1o25yNtz": {
+        "action_taken": "Simulated detection",
+        "class": "Early_Blight",
+        "confidence": 0.3,
+        "timestamp": 1777753590576,
+        "zone_x": 200
+      },
+      "-Orf0V4-2koujnmhoNzs": {
+        "action_taken": "Simulated detection",
+        "class": "Pest",
+        "confidence": 1,
+        "timestamp": 1777753733164,
+        "zone_x": 1
+      },
+      "-Orf4zp8YjXPXMfx42qQ": {
+        "action_taken": "Simulated detection",
+        "class": "Nutrient_Deficiency",
+        "confidence": 1,
+        "timestamp": 1777754911792,
+        "zone_x": 1
+      },
+      "-Orf57E4-ofMiZWgAqOJ": {
+        "action_taken": "Simulated detection",
+        "class": "Early_Blight",
+        "confidence": 0.2,
+        "timestamp": 1777754946221,
+        "zone_x": 50
+      },
+      "-Orf5Jycbe6SObyQ7F0U": {
+        "action_taken": "Simulated detection",
+        "class": "Late_Blight",
+        "confidence": 1,
+        "timestamp": 1777754998418,
+        "zone_x": 2
+      },
+      "-Orf5wX3VCm_ofgnpMQs": {
+        "action_taken": "Simulated detection",
+        "class": "Late_Blight",
+        "confidence": 1,
+        "timestamp": 1777755160433,
+        "zone_x": 3
+      },
+      "-Orf65-EMKDyC4yWG4XM": {
+        "action_taken": "Simulated detection",
+        "class": "Late_Blight",
+        "confidence": 0.2,
+        "timestamp": 1777755199232,
+        "zone_x": 1
+      },
+      "-Orf7k1p9JFp2OExNU0q": {
+        "action_taken": "Simulated detection",
+        "class": "Late_Blight",
+        "confidence": 1,
+        "timestamp": 1777755633574,
+        "zone_x": 2
+      },
+      "-Orf7pcdSppZbOwYy2Y-": {
+        "action_taken": "Simulated detection",
+        "class": "Early_Blight",
+        "confidence": 1,
+        "timestamp": 1777755656464,
+        "zone_x": 2
+      },
+      "-Orf8BgtbDXJ7OcwY8D4": {
+        "action_taken": "Simulated detection",
+        "class": "Early_Blight",
+        "confidence": 1,
+        "timestamp": 1777755750943,
+        "zone_x": 2
+      },
+      "-Orf8PJPLgYrVrSXjfeh": {
+        "action_taken": "Simulated detection",
+        "class": "Early_Blight",
+        "confidence": 1,
+        "timestamp": 1777755806727,
+        "zone_x": 1
+      },
+      "-OrgQAsgS9OyU6Qt95ON": {
+        "action_taken": "Simulated detection",
+        "class": "Late_Blight",
+        "confidence": 0.2,
+        "timestamp": 1777777243744,
+        "zone_x": 300
+      },
+      "-OrmuX7zEKALLvvvyDMt": {
+        "action_taken": "Simulated detection",
+        "class": "Late_Blight",
+        "confidence": 0.7,
+        "timestamp": 1777886126415,
+        "zone_x": 200
+      }
+    },
+    "active_protocol": {
+      "status": "idle"
+    },
+    "latest_detection": {
+      "class": "Late_Blight",
+      "confidence": 0.7,
+      "image_url": "https://storage.googleapis.com/embedded-project-32dca.firebasestorage.app/detections/Late_Blight_20260504_121524.jpg",
+      "timestamp": "2026-05-04 12:15:25 UTC"
+    }
+  },
+  "alerts": {
+    "history": {
+      "-Orf4n5Bm3qotJoTSAVd": {
+        "message": "Plant Issue Detected: Pest detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777765659885
+      },
+      "-Orf4qRDgB3kV4EJ8IVz": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777765673582
+      },
+      "-Orf4uCxRqU71ROMcNrt": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777765689053
+      },
+      "-Orf4uQPpafQZYpdTxz_": {
+        "message": "Protocol Complete: Pest protocol finished — system resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777765689914
+      },
+      "-Orf4zlD7gV4XwCYE_Zl": {
+        "message": "Plant Issue Detected: Nutrient_Deficiency detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777765711790
+      },
+      "-Orf57AB0uXouhrgT7Xe": {
+        "message": "Plant Issue Detected: Early_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777765746220
+      },
+      "-Orf5Ea8r1LOQSbY_2Hr": {
+        "message": "Protocol Complete: Early_Blight protocol finished — system resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777765776617
+      },
+      "-Orf5JunNwIoGr8BcxHX": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777765798419
+      },
+      "-Orf5t-v-mGDJM5Ey1YT": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777765946471
+      },
+      "-Orf7in5ag4bi7pVSA9q": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777766428675
+      },
+      "-Orf7p_I_NC1Uo4JGGPt": {
+        "message": "Plant Issue Detected: Early_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777766456464
+      },
+      "-Orf8JXTGUFk270ycFs8": {
+        "message": "Plant Issue Detected: Early_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777766583245
+      },
+      "-Orf8gUOF9hsaeVpanvU": {
+        "message": "Plant Issue Detected: Early_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777766681351
+      },
+      "-Orf8nsUcGbKjEHsluNb": {
+        "message": "Protocol Complete: Early_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777766711630
+      },
+      "-Orf8pVK7hDP3h0CYTdB": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777766718275
+      },
+      "-Orf8pnYP_-cA-4Aw6vD": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777766719505
+      },
+      "-OrgPmJlo-53SQ1M7ecN": {
+        "message": "Plant Issue Detected: Early_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777787938097
+      },
+      "-OrgPtim67T1Rgyshcal": {
+        "message": "Protocol Complete: Early_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777787968434
+      },
+      "-OrgPuPNY10i0MX4EIfU": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777787971224
+      },
+      "-OrgPzhahw9RlfUjwNes": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777787992934
+      },
+      "-OrgQ-eRA6DMV6v3E3Gk": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777787996828
+      },
+      "-OrgQAvxyI5zY6RUzBfS": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777788043006
+      },
+      "-OrgQPd9qC7Zrel8QpYq": {
+        "message": "Protocol Complete: Late_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777788103242
+      },
+      "-OrgQTcw700mgtCxac5r": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777788119612
+      },
+      "-OrgQjil_mrJVMcedrpl": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777788189617
+      },
+      "-OrgQt6nRWtUoG2gJmwj": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777788228083
+      },
+      "-OrgQyR00G2Po8Elj_MQ": {
+        "message": "Protocol Complete: Late_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777788249857
+      },
+      "-OrgRiGsIfjFMmQUBN9c": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777788447015
+      },
+      "-OrgRjCAnI6MwEtwmJLG": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777788450809
+      },
+      "-OrgRx2upgO3IMKZrSnj": {
+        "message": "Protocol Complete: Late_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777788507560
+      },
+      "-OrhavYiZQYN6vQ1PwMM": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777807898865
+      },
+      "-Orhb2tvQVmMs67po5dl": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777807933051
+      },
+      "-Orhb9Q8JvH0WYQbkZfs": {
+        "message": "Protocol Complete: Late_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777807959754
+      },
+      "-OrhbPRFWNelXHNfUfng": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777808025360
+      },
+      "-OrhdO8zp_jxG6EYZQSA": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777808544384
+      },
+      "-OrhdqR17HyuJClwIYLN": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777808664322
+      },
+      "-OrmuArZGY1f0wLY-kDY": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777896832484
+      },
+      "-OrmuC-7iv40xBf_shg5": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777896837128
+      },
+      "-OrmuPZoXvgBFmOIxJm4": {
+        "message": "Protocol Complete: Late_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777896892724
+      },
+      "-OrmuWwCP_1bQZeHlWmT": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777896922893
+      },
+      "-OrmukfJUbjKcuYjxLdw": {
+        "message": "Protocol Complete: Late_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777896983252
+      },
+      "-OrrhxP8BStlPSbspm00": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777977513609
+      },
+      "-OrrhzvGjL_YGORDCqpP": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777977523921
+      },
+      "-Orri1bwTns0vABax0Ws": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777977534972
+      },
+      "-OrriB6RpGGZ1he_Vh2O": {
+        "message": "Protocol Complete: Late_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777977573852
+      },
+      "-Orrj7ocGmSmdHX6nOlf": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777977822504
+      },
+      "-OrrmeHjZ4LeG98AB1_e": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777978746031
+      },
+      "-OrrnxtevtZr-TjZUzhK": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777979088490
+      },
+      "-Ors4tToHXWLWonfZfUr": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777983788980
+      },
+      "-OrsBVGSm7iwV06cKU4G": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777985520733
+      },
+      "-OrsBiygQhduQ9TfUZaW": {
+        "message": "Protocol Complete: Late_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777985580972
+      },
+      "-OrsE9XDF9c0riFJvSym": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1777986222500
+      },
+      "-OrsENGAP8SdUd28FU2U": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1777986278753
+      },
+      "-OrsEODWhlnltotPQ7VG": {
+        "message": "Protocol Complete: Late_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1777986282679
+      },
+      "-Os8vrnSmcT6rya0AyK2": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1778283150557
+      },
+      "-Osp6OnUNubElu0HADxE": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1779007593695
+      },
+      "-Osp6caVkxsLZBpb9CzM": {
+        "message": "Protocol Complete: Late_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1779007654304
+      },
+      "-Osp6o16sAt6wmOY1rgo": {
+        "message": "Manual Mode Enabled: AI automation paused. You have full control.",
+        "severity": "info",
+        "timestamp": 1779007701127
+      },
+      "-OsqMCAgzohlxguKFPE-": {
+        "message": "Plant Issue Detected: Late_Blight detected — check AI Monitor",
+        "severity": "warning",
+        "timestamp": 1779028513517
+      },
+      "-OsqMRK23K3mGzlKWii8": {
+        "message": "Protocol Complete: Late_Blight protocol finished — resuming normal operation.",
+        "severity": "info",
+        "timestamp": 1779028575555
+      }
+    }
+  },
+  "commands": {
+    "cancel_ai_protocol": true,
+    "emergency_stop": true,
+    "gantry_move": {
+      "source": "app",
+      "timestamp": 1777978887510,
+      "x": 0
+    },
+    "pump": {
+      "source": "app",
+      "state": "OFF",
+      "timestamp": 1779007702867
+    }
+  },
+  "sensors": {
+    "current": 4.32544,
+    "humidity": 43,
+    "soil_moisture_pct": 100,
+    "temperature": 26.7
+  },
+  "status": {
+    "gantry_x": 0,
+    "mode": "AUTOMATIC",
+    "mode_changed_at": 1779007706269,
+    "pump": "OFF",
+    "system_state": "NORMAL"
+  }
+}
