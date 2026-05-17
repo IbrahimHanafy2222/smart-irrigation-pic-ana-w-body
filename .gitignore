@@ -50,3 +50,4 @@ venv/
 
 # Don't ignore the .hex — friend may want it
 !output.hex
+"pi-script/firebase-key.json"
